@@ -1,50 +1,42 @@
 Scan optimieren
 ===============
 
-1)  Bild Scannen
+1. Bild Scannen
+   mit XSane Image Scanning bei Auflösung 300 DPI und Graustufen als einzelnes 
+   PNG-Bild in Datei scannen
 
-    mit XSane Image Scanning bei Auflösung 300 DPI und Graustufen als einzelnes 
-    PNG-Bild in Datei scannen
 
+2a. Text-Scan optimieren
 
-2a) Text-Scan optimieren
+    [Optimieren mit ImageMagick](http://dikant.de/2013/05/01/optimizing-scanned-documents-with-imagemagick/)
 
-    http://dikant.de/2013/05/01/optimizing-scanned-documents-with-imagemagick/
-
-	*   bei überwiegend Text:
-	
-		$> mogrify -normalize -level 10%,90% -sharpen 0x1 scan_a.png
-
-	*   bei überwiegend Bild
-	
-		$> mogrify -normalize -level 15%,85% scan_a.png
-
+    * bei überwiegend Text:
+      ```
+      $> mogrify -normalize -level 10%,90% -sharpen 0x1 scan_a.png
+      ```
+    * bei überwiegend Bild
+      ```
+      $> mogrify -normalize -level 15%,85% scan_a.png
+      ```
     Tipp: je Bild den Aufruf mehrmals durchführen (z.B. 7x)
 
+2b. Cleaning scanned grayscale images with ImageMagick
+    [Graustufenbilder säubern](https://stackoverflow.com/questions/9608279/cleaning-scanned-grayscale-images-with-imagemagick)
 
-2b) Cleaning scanned grayscale images with ImageMagick
-
-    https://stackoverflow.com/questions/9608279/cleaning-scanned-grayscale-images-with-imagemagick
-
-
-3)  mehrere Bilder in ein PDF-Dokument konvertieren
-
-    https://askubuntu.com/questions/246647/jpeg-files-to-pdf
-
-    $> convert scan_a.png scan_b.png scan_c.png scan.pdf
-
+3. mehrere Bilder in ein PDF-Dokument konvertieren
+   [JPEG zu PDF konvertieren](https://askubuntu.com/questions/246647/jpeg-files-to-pdf)
+   ```
+   $> convert scan_a.png scan_b.png scan_c.png scan.pdf
+   ```
 
 Weitere Tipps
 -------------
 
 https://rohieb.name/blag/post/optimizing-xsane-s-scanned-pdfs/
 
-
-
-#-----------------------------------------------------------------------------
-sanimage
+```
+scanimage
 'hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
-
 
 Options specific to device `hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC':
   Scan mode:
@@ -74,17 +66,20 @@ Options specific to device `hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
         Width of scan-area.
     -y 0..297.011mm [297.011]
         Height of scan-area.
+```
 
-Type ``scanimage --help -d DEVICE'' to get list of all options for DEVICE.
-
-
+Type `$> scanimage --help -d DEVICE` to get list of all options for DEVICE.
 
 für Bilder 13cm x 9cm farbig scannen:
+```
 $> scanimage --mode Color --resolution 300 --format tiff -x 130 -y 90 > test.tiff
 $> convert test.tiff test.png
 $> mogrify -normalize -level 5%,95% test.png
+```
 
 https://linux.die.net/man/1/scanimage
 http://www.linuxdevcenter.com/pub/a/linux/2000/07/18/LivingLinux.html
 
-scanimage --test -d 'hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
+```
+$> scanimage --test -d 'hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
+```
