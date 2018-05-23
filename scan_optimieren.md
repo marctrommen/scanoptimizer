@@ -5,25 +5,24 @@ Scan optimieren
    mit XSane Image Scanning bei Auflösung 300 DPI und Graustufen als einzelnes 
    PNG-Bild in Datei scannen
 
+   1. Text-Scan optimieren
 
-2a. Text-Scan optimieren
+      [Optimieren mit ImageMagick](http://dikant.de/2013/05/01/optimizing-scanned-documents-with-imagemagick/)
 
-    [Optimieren mit ImageMagick](http://dikant.de/2013/05/01/optimizing-scanned-documents-with-imagemagick/)
+      * bei überwiegend Text
+        ```
+        $> mogrify -normalize -level 10%,90% -sharpen 0x1 scan_a.png
+        ```
+      * bei überwiegend Bild
+        ```
+        $> mogrify -normalize -level 15%,85% scan_a.png
+        ```
+      Tipp: je Bild den Aufruf mehrmals durchführen (z.B. 7x)
 
-    * bei überwiegend Text:
-      ```
-      $> mogrify -normalize -level 10%,90% -sharpen 0x1 scan_a.png
-      ```
-    * bei überwiegend Bild
-      ```
-      $> mogrify -normalize -level 15%,85% scan_a.png
-      ```
-    Tipp: je Bild den Aufruf mehrmals durchführen (z.B. 7x)
+   2. Cleaning scanned grayscale images with ImageMagick
+      [Graustufenbilder säubern](https://stackoverflow.com/questions/9608279/cleaning-scanned-grayscale-images-with-imagemagick)
 
-2b. Cleaning scanned grayscale images with ImageMagick
-    [Graustufenbilder säubern](https://stackoverflow.com/questions/9608279/cleaning-scanned-grayscale-images-with-imagemagick)
-
-3. mehrere Bilder in ein PDF-Dokument konvertieren
+2. mehrere Bilder in ein PDF-Dokument konvertieren
    [JPEG zu PDF konvertieren](https://askubuntu.com/questions/246647/jpeg-files-to-pdf)
    ```
    $> convert scan_a.png scan_b.png scan_c.png scan.pdf
