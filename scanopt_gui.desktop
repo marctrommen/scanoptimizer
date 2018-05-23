@@ -1,0 +1,16 @@
+# General Desktop entry specification:
+# https://specifications.freedesktop.org/desktop-entry-spec/latest/index.html
+# https://wiki.lxde.org/en/Main_Menu
+[Desktop Entry]
+Name=ScanOpt-GUI
+Version=1.0
+GenericName=scan and optimize
+GenericName[de]=Scan-Optimierung
+Comment=A program to work with scanner. Can be used as a scanning tools, included with filesize optimization and PDF converting.
+Comment[de]=Ein Programm für Scanner. Werkzeug zum Scannen einer DIN-A4 Seite, inklusive einer Optimierung der Dateigröße und einer PDF-Konvertierung.
+Exec=/usr/bin/python3 /opt/scanopt/scanopt_gui.py
+Icon=/opt/scanopt/scanopt_gui.png
+Terminal=false
+Type=Application
+Categories=Graphics;Utility
+StartupNotify=false
