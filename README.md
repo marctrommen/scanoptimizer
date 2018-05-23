@@ -4,7 +4,7 @@ scanoptimizer
 A helper for a one-click-approach to scanning, file size reduction and 
 converting scans into PDF under LINUX (e.g. Debian) operating systems.
 
-[![MIT License][LICENSE-BADGE]](LICENSE.md)
+[![MIT License][LICENSE-BADGE]](LICENSE)
 ![Python 3.x][PYTHON-BADGE]
 
 [LICENSE-BADGE]: https://img.shields.io/badge/license-MIT-blue.svg
@@ -108,6 +108,7 @@ Installing on Debian like systems:
    $> sudo cp scan_and_optimize.sh /opt/scanopt
    $> sudo chmod 775 /opt/scanopt/scan_and_optimize.sh
    $> sudo cp README.md /opt/scanopt
+   $> sudo cp LICENSE /opt/scanopt
    $> sudo cp scanopt_gui.desktop /opt/scanopt
    $> sudo cp scanopt_gui.gif /opt/scanopt
    $> sudo cp scanopt_gui.png /opt/scanopt
@@ -153,7 +154,7 @@ License
 
 This is free and open source software. You can use, copy, modify,
 merge, publish, distribute, sublicense, and/or sell copies of it,
-under the terms of the [MIT License](LICENSE.md).
+under the terms of the [MIT License](LICENSE).
 
 This software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND,
-express or implied. See the [MIT License](LICENSE.md) for details.
+express or implied. See the [MIT License](LICENSE) for details.
