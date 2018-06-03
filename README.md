@@ -178,21 +178,20 @@ scan.
 
 After pushing the button `Scannen` the scan process will get started.
 
-During the scan is in progress you will see a busi dialog and all settings can't 
-be changed.
+While the scan is in progress you will see a busy dialog and none of the settings can 
+get changed.
 
 ![busy dialog](docs/scan_in_progress.png)
 
-If the scan ended successfuly you will get a success notice.
+If the scan ended successfuly you will get a success info.
 
 ![busy dialog](docs/scan_successful.png)
 
 In case of an error you will get an error message from the system in an error 
 dialog. Most of the times errors occure when the scanner is either not connected
-to the computer or not switched on yet.
+to the computer or not switched on.
 
 ![busy dialog](docs/scan_error.png)
-
 
 
 License
