@@ -27,8 +27,8 @@ Introduction
 Scanning under LINUX systems is something not really good supported. I have 
 always got some kind of jealous about WINDOWS or MAC users: They just put their 
 document to scan onto their scanner, open any Scanning Software, push a button
-and then the scan starts and after a a moment a well sized PDF file of the
-scan is available on the fiele systems.
+and then the scan starts and after a moment a well sized PDF file of the
+scan is available on the file system.
 
 I always wanted the same comfort!
 Over years of collecting knowledge about tweaking images with the help of
