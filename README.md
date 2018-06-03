@@ -17,6 +17,7 @@ Contents
 * [Introduction](#introduction)
 * [Preconditions](#preconditions)
 * [Get Started](#get-started)
+* [Using the GUI](#using-the-gui)
 * [License](#license)
 
 
@@ -147,6 +148,51 @@ Hints:
    ```
    $> scanimage --help --device-name 'hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
    ```
+
+
+Using the GUI
+-------------
+
+Open the application from the Panel's application menu.
+
+![application menu](docs/menu_placing.png)
+
+Clicking on the menu entry, it opens up the application and you see the 
+application's main dialog.
+
+![application main dialog](docs/application_window.png)
+
+If you run the application for the first time, you will get for all scanning
+parameters the default values. Whenever you close the application it will save
+all parameters into a file in your users home directory called `.scan_and_optimize`.
+On every application start it will read from this file - if it exists - the 
+settings from your previous session. In case you want to restore the initial 
+default settings, just delete the file `.scan_and_optimize` in your users home
+directory.
+
+You can adjusted the scan parameters as needed. Most of the times you will set
+the `Arbeitsverzeichnis` (working directory) where all youre scan results will
+be placed into and `Dateiname des Scan` for the file name of the scan without 
+extension, because it will get used for several temporay files of the current 
+scan.
+
+After pushing the button `Scannen` the scan process will get started.
+
+During the scan is in progress you will see a busi dialog and all settings can't 
+be changed.
+
+!busy dialog](docs/scan_in_progress.png)
+
+If the scan ended successfuly you will get a success notice.
+
+!busy dialog](docs/scan_successful.png)
+
+In case of an error you will get an error message from the system in an error 
+dialog. Most of the times errors occure when the scanner is either not connected
+to the computer or not switched on yet.
+
+!busy dialog](docs/scan_error.png)
+
 
 
 License
