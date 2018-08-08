@@ -112,7 +112,6 @@ Installing on Debian like systems:
    $> sudo cp LICENSE /opt/scanopt
    $> sudo cp scanopt_gui.desktop /opt/scanopt
    $> sudo cp scanopt_gui.gif /opt/scanopt
-   $> sudo cp scanopt_gui.png /opt/scanopt
    ```
 
 3. Optionally extend `PATH` variable of your local user profile (`~/.profile`)
