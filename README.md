@@ -76,6 +76,9 @@ Preconditions (on Debian like systems):
    ```
 
 4. Python 3.x with `tkinter` is available on your system
+   ```
+   $> sudo apt-get install python3-dev python3-pip python3-tk
+   ```
 
 
 Get Started
@@ -100,6 +103,11 @@ Installing on Debian like systems:
    command:
    ```
    $> lxpanelctl restart
+   ```
+   if this does not work, i.e. program starter icon in the panel menu not yet visible, then try this:
+   ```
+   $> kill `pidof lxpanel`
+   $> setsid lxpanel -p LXDE &>/dev/null
    ```
 
 2. Create a new directory for program files in `/opt/` and copy all files into it
