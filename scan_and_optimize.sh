@@ -61,7 +61,7 @@
 SCRIPTNAME=`basename $0`
 
 # Version of current script as date string, formatted as 'YYYY-MM-DD hh:mm'
-SCRIPT_VERSION='2018-02-19 20:00'
+SCRIPT_VERSION='2018-10-30 07:45'
 
 # current device
 DEVICE='hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
