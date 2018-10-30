@@ -216,22 +216,11 @@ fi
 
 # ---------------------------
 # reduce file size
-if [[ "$TYPE" == "graphics" ]] ; then
-	COMMAND="mogrify -normalize -level 15%,85% ${WORKING_DIRECTORY}/${FILENAME}.png"
-else
-	COMMAND="mogrify -normalize -level 10%,90% -sharpen 0x1 ${WORKING_DIRECTORY}/${FILENAME}.png"
+convert ${WORKING_DIRECTORY}/${FILENAME}.png -normalize -gamma 0.8,0.8,0.8 -colorspace HSL -channel saturation -fx 'min(1.0,max(0.0,3*u.g-1))' -colorspace RGB +dither -posterize 3 ${WORKING_DIRECTORY}/${FILENAME}.png
+RETURN_CODE=$?
+if [[ ${RETURN_CODE} -ne 0 ]] ; then
+	exit ${RETURN_CODE}
 fi
-
-typeset -i optcount
-optcount=${OPTCOUNT}
-while [ "$optcount" -gt 0 ]; do
-	${COMMAND}
-	RETURN_CODE=$?
-	if [[ ${RETURN_CODE} -ne 0 ]] ; then
-		exit ${RETURN_CODE}
-	fi
-	optcount=$optcount-1
-done
 
 
 # ---------------------------
