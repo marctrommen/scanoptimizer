@@ -1,5 +1,5 @@
-scanoptimizer
-=============
+# scanoptimizer
+
 
 A helper for a one-click-approach to scanning, file size reduction and 
 converting scans into PDF under LINUX (e.g. Debian) operating systems.
@@ -11,18 +11,18 @@ converting scans into PDF under LINUX (e.g. Debian) operating systems.
 [PYTHON-BADGE]: https://img.shields.io/badge/Python-3.x-blue.svg
 
 
-Contents
---------
+## Contents
 
 * [Introduction](#introduction)
 * [Preconditions](#preconditions)
 * [Get Started](#get-started)
 * [Using the GUI](#using-the-gui)
+* [Best Practices](#best-practices)
+* [Further reading](docs/scan_optimieren.md)
 * [License](#license)
 
 
-Introduction
-------------
+## Introduction
 
 Scanning under LINUX systems is something not really good supported. I have 
 always got some kind of jealous about WINDOWS or MAC users: They just put their 
@@ -55,8 +55,7 @@ desktop menu so it appears as a menu item under the group `grafics` or
 You are welcome and feel free to install and use this tool!
 
 
-Preconditions
--------------
+## Preconditions
 
 Preconditions (on Debian like systems):
 
@@ -81,8 +80,7 @@ Preconditions (on Debian like systems):
    ```
 
 
-Get Started
------------
+## Get Started
 
 Installing on Debian like systems:
 
@@ -157,8 +155,7 @@ Hints:
    ```
 
 
-Using the GUI
--------------
+## Using the GUI
 
 Open the application from the Panel's application menu.
 
@@ -178,10 +175,16 @@ default settings, just delete the file `.scan_and_optimize` in your users home
 directory.
 
 You can adjusted the scan parameters as needed. Most of the times you will set
-the `Arbeitsverzeichnis` (working directory) where all youre scan results will
+the `Arbeitsverzeichnis` (working directory) where all your scan results will
 be placed into and `Dateiname des Scan` for the file name of the scan without 
 extension, because it will get used for several temporay files of the current 
-scan.
+scan. Pushing the button `...` will open the *directory chooser dialog*.
+
+![directory chooser dialog](docs/scan_directorychooser.png)
+
+Just chose a directory for your *working directory* and conform it. The 
+name of the currently chosen *working directory* will be shown in the disabled
+label box.
 
 After pushing the button `Scannen` the scan process will get started.
 
@@ -190,19 +193,35 @@ get changed.
 
 ![busy dialog](docs/scan_in_progress.png)
 
-If the scan ended successfuly you will get a success info.
+If the scan ended successfully you will get a success info.
 
-![busy dialog](docs/scan_successful.png)
+![success dialog](docs/scan_successful.png)
 
 In case of an error you will get an error message from the system in an error 
 dialog. Most of the times errors occure when the scanner is either not connected
-to the computer or not switched on.
+to the computer or not switched on or just nor ready yet for scanning operation.
 
-![busy dialog](docs/scan_error.png)
+![error dialog 1](docs/scan_error.png)
+![error dialog 2](docs/scan_error2.png)
+
+The Button `Info` will show you the current programm version.
+
+![info dialog](docs/scan_info.png)
 
 
-License
--------
+## Best Practices
+
+If you just want to scan a single page document for archiving reasons, e.g. you
+want a readable digital copy of an original document with the smallest file size
+then do the following settings:
+*   set `Scan-Auflösung [dpi]` to `200`
+*   set `Dateiformat` to `PDF`
+
+If you want to scan a document with multiple pages
+
+
+
+## License
 
 This is free and open source software. You can use, copy, modify,
 merge, publish, distribute, sublicense, and/or sell copies of it,

@@ -44,7 +44,7 @@
 # -----------------------------------------------------------------------------
 # Version of current script as date string, formatted as 'YYYY-MM-DD hh:mm'
 # -----------------------------------------------------------------------------
-SCRIPT_VERSION='2018-02-19 20:00'
+SCRIPT_VERSION='2018-11-02 08:00'
 AUTHOR = "Marcus Trommen (mailto:marcus.trommen@gmx.net)"
 
 
@@ -53,12 +53,8 @@ AUTHOR = "Marcus Trommen (mailto:marcus.trommen@gmx.net)"
 # -----------------------------------------------------------------------------
 RESOLUTION_OPTIONS = ('75', '100', '200', '300')
 RESOLUTION_DEFAULT = '200'
-OPTIMIZATIONCOUNT_DEFAULT = 7
-OPTIMIZATIONCOUNT_MAX_VALUE = 15
-COLORMODE_OPTIONS = {'Gray' : 'Grautöne', 'Color' : 'Farbe'}
-COLORMODE_DEFAULT_KEY = 'Gray'
-ORIGINAL_OPTIONS = {'text' : 'Text', 'graphics' : 'Bild'}
-ORIGINAL_DEFAULT_KEY = 'text'
+FILE_FORMAT_OPTIONS = {'png' : 'PNG (Portable Network Graphics)', 'pdf' : 'PDF (Portable Document Format)'}
+FILE_FORMAT_DEFAULT_KEY = 'png'
 SCAN_FILENAME_DEFAULT = "scan"
 
 SHELLSCRIPT = '/opt/scanopt/scan_and_optimize.sh'
@@ -70,9 +66,7 @@ SETTINGS_FILE_NAME = '.scan_and_optimize'
 # -----------------------------------------------------------------------------
 APPLICATION_NAME = 'Scan optimieren'
 LABEL_RESOLUTION = 'Scan-Auflösung [dpi]:'
-LABEL_COLORMODE = 'Ausgabedokument:'
-LABEL_OPTIMIZATIONCOUNT = 'Anzahl Optimierungen:'
-LABEL_ORIGINAL = 'Vorlageart: überwiegend '
+LABEL_FILE_FORMAT = 'Dateiformat:'
 LABEL_WORKDIR = 'Arbeitsverzeichnis:'
 LABEL_FILENAME = "Dateiname des Scan: "
 LABEL_INFO = 'Info'
@@ -83,9 +77,7 @@ LABEL_CLOSE = 'Schließen'
 # static label definitions (for settings file) - do not change
 # -----------------------------------------------------------------------------
 SETTING_RESOLUTION = 'resolution'
-SETTING_COLORMODE = 'colormode'
-SETTING_OPTIMIZATIONCOUNT = 'optimizationcount'
-SETTING_ORIGINAL = 'originial'
+SETTING_FILE_FORMAT = 'fileformat'
 SETTING_SCANWORKDIR = 'scanworkdir'
 SETTING_SCANFILENAME = 'scanfilename'
 
@@ -126,14 +118,8 @@ class Application(tkinter.Frame):
 		self.resolution = tkinter.StringVar()
 		self.resolution.set(RESOLUTION_DEFAULT)
 		
-		self.colormode = tkinter.StringVar()
-		self.colormode.set(COLORMODE_DEFAULT_KEY)
-		
-		self.optcount = tkinter.IntVar()
-		self.optcount = OPTIMIZATIONCOUNT_DEFAULT
-		
-		self.original = tkinter.StringVar()
-		self.original.set(ORIGINAL_DEFAULT_KEY)
+		self.fileformat = tkinter.StringVar()
+		self.fileformat.set(FILE_FORMAT_DEFAULT_KEY)
 		
 		self.workdir = tkinter.StringVar()
 		self.workdir.set(os.getenv('HOME'))
@@ -160,12 +146,8 @@ class Application(tkinter.Frame):
 				
 				if key == SETTING_RESOLUTION:
 					self.resolution.set(value)
-				elif key == SETTING_COLORMODE:
-					self.colormode.set(value)
-				elif key == SETTING_OPTIMIZATIONCOUNT:
-					self.optcount = int(value)
-				elif key == SETTING_ORIGINAL:
-					self.original.set(value)
+				elif key == SETTING_FILE_FORMAT:
+					self.fileformat.set(value)
 				elif key == SETTING_SCANWORKDIR:
 					self.workdir.set(value)
 				elif key == SETTING_SCANFILENAME:
@@ -184,9 +166,7 @@ class Application(tkinter.Frame):
 		else:
 			fileHandle.write('# last change: ' + datetime.datetime.now().isoformat() + '\n')
 			fileHandle.write(SETTING_RESOLUTION + "=" + self.resolution.get() + '\n')
-			fileHandle.write(SETTING_COLORMODE + "=" + self.colormode.get() + '\n')
-			fileHandle.write(SETTING_OPTIMIZATIONCOUNT + "=" + str(self.optcount) + '\n')
-			fileHandle.write(SETTING_ORIGINAL + "=" + self.original.get() + '\n')
+			fileHandle.write(SETTING_FILE_FORMAT + "=" + self.fileformat.get() + '\n')
 			fileHandle.write(SETTING_SCANWORKDIR + "=" + self.workdir.get() + '\n')
 			fileHandle.write(SETTING_SCANFILENAME + "=" + self.filename.get() + '\n')
 		finally:
@@ -219,74 +199,24 @@ class Application(tkinter.Frame):
 		self.widgetList.append(resBox)
 		rowIndex += 1
 		
-		# ColorMode
-		lColorMode = tkinter.Label(self)
-		lColorMode['text'] = LABEL_COLORMODE
-		lColorMode['justify'] = tkinter.LEFT
-		lColorMode.grid(row=rowIndex, column=0, sticky='nw', padx=5, pady=8)
-		self.widgetList.append(lColorMode)
+		# File Format
+		lFileformat = tkinter.Label(self)
+		lFileformat['text'] = LABEL_FILE_FORMAT
+		lFileformat['justify'] = tkinter.LEFT
+		lFileformat.grid(row=rowIndex, column=0, sticky='ewn', padx=5, pady=8)
+		self.widgetList.append(lFileformat)
 		
-		optionFrame = tkinter.Frame(self)
+		frameFileformat = tkinter.Frame(self)
 		optionRow = 0
-		for cmodeKey in COLORMODE_OPTIONS.keys() :
-			radio = tkinter.Radiobutton(optionFrame)
-			radio["text"] = COLORMODE_OPTIONS[cmodeKey]
-			radio["value"] = cmodeKey
-			radio["variable"] = self.colormode
-			radio.grid(row=optionRow, column=0, padx=0, pady=0, sticky='w')
-			self.widgetList.append(radio)
-			optionRow += 1
-		optionFrame.grid(row=rowIndex, column=1, sticky='wn', padx=5, pady=8, columnspan=4)
-		rowIndex += 1
-		
-		# OptimizationCount
-		lOptCount = tkinter.Label(self)
-		lOptCount['text'] = LABEL_OPTIMIZATIONCOUNT
-		lOptCount['justify'] = tkinter.LEFT
-		lOptCount.grid(row=rowIndex, column=0, sticky='w', padx=5, pady=5)
-		self.widgetList.append(lOptCount)
-		
-		self.vOptCount = tkinter.Label(self)
-		self.vOptCount['text'] = str(self.optcount)
-		self.vOptCount['bg'] = 'white'
-		self.vOptCount['width'] = 2
-		self.vOptCount['justify'] = tkinter.RIGHT
-		self.vOptCount.grid(row=rowIndex, column=1, sticky='w', padx=5, pady=5)
-		self.widgetList.append(self.vOptCount)
-
-		bDecOptCount = tkinter.Button(self)
-		bDecOptCount['text'] = '-'
-		bDecOptCount['width'] = 1
-		bDecOptCount['command'] = self._decreaseOptCount
-		bDecOptCount.grid(row=rowIndex, column=2, sticky='e', padx=0, pady=0)
-		self.widgetList.append(bDecOptCount)
-		
-		bIncOptCount = tkinter.Button(self)
-		bIncOptCount['text'] = '+'
-		bIncOptCount['width'] = 1
-		bIncOptCount['command'] = self._increaseOptCount
-		bIncOptCount.grid(row=rowIndex, column=3, sticky='w', padx=0, pady=0)
-		self.widgetList.append(bIncOptCount)
-		rowIndex += 1
-		 
-		# Original (Vorlageart)
-		lOrig = tkinter.Label(self)
-		lOrig['text'] = LABEL_ORIGINAL
-		lOrig['justify'] = tkinter.LEFT
-		lOrig.grid(row=rowIndex, column=0, sticky='ewn', padx=5, pady=8)
-		self.widgetList.append(lOrig)
-		
-		frameOrig = tkinter.Frame(self)
-		optionRow = 0
-		for origKey in ORIGINAL_OPTIONS.keys() :
-			radio = tkinter.Radiobutton(frameOrig)
-			radio["text"] = ORIGINAL_OPTIONS[origKey]
-			radio["value"] = origKey
-			radio["variable"] = self.original
+		for fileformatKey in FILE_FORMAT_OPTIONS.keys() :
+			radio = tkinter.Radiobutton(frameFileformat)
+			radio["text"] = FILE_FORMAT_OPTIONS[fileformatKey]
+			radio["value"] = fileformatKey
+			radio["variable"] = self.fileformat
 			radio.grid(row=optionRow, column=0, sticky='w', padx=0, pady=0)
 			self.widgetList.append(radio)
 			optionRow += 1
-		frameOrig.grid(row=rowIndex, column=1, sticky='ewns', padx=5, pady=8, columnspan=4)
+		frameFileformat.grid(row=rowIndex, column=1, sticky='ewns', padx=5, pady=8, columnspan=4)
 		rowIndex += 1
 		
 		# Working Directory
@@ -347,20 +277,6 @@ class Application(tkinter.Frame):
 		self.widgetList.append(bquit)
 
 
-	def _increaseOptCount(self):
-		self.optcount += 1
-		if (self.optcount > OPTIMIZATIONCOUNT_MAX_VALUE):
-			self.optcount = OPTIMIZATIONCOUNT_MAX_VALUE
-		self.vOptCount['text'] = str(self.optcount)
-
-
-	def _decreaseOptCount(self):
-		self.optcount -= 1
-		if (self.optcount < 1):
-			self.optcount = 1
-		self.vOptCount['text'] = str(self.optcount)
-
-
 	def _workdirHandler(self):
 		#self.topLevel.update_idletasks()
 		options = {}
@@ -389,10 +305,8 @@ class Application(tkinter.Frame):
 		data = {}
 		data['wdir'] = self.workdir.get()
 		data['name'] = self.filename.get()
-		data['mode'] = self.colormode.get()
-		data['original'] = self.original.get()
+		data['fileformat'] = self.fileformat.get()
 		data['resolution'] = self.resolution.get()
-		data['count'] = str(self.optcount)
 
 		self._toggleState('disabled')
 		info = Busy(self.master, 'Info', data)
@@ -459,14 +373,10 @@ class Busy(tkinter.Toplevel):
 		command.append(self.data['wdir'])
 		command.append('--name')
 		command.append(self.data['name'])
-		command.append('--mode')
-		command.append(self.data['mode'])
-		command.append('--original')
-		command.append(self.data['original'])
 		command.append('--resolution')
 		command.append(self.data['resolution'])
-		command.append('--count')
-		command.append(self.data['count'])
+		if self.data['fileformat'] == 'pdf' :
+			command.append('--pdf')
 		
 		process = subprocess.Popen(
 			command,

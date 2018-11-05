@@ -32,6 +32,7 @@ Weitere Tipps
 -------------
 
 https://rohieb.name/blag/post/optimizing-xsane-s-scanned-pdfs/
+http://blog.konradvoelkel.de/2013/03/scan-to-pdfa/
 
 ```
 scanimage

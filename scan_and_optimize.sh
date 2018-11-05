@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # -----------------------------------------------------------------------------
-# Script for scanning pages from a scanner via SANE, reduce the file size and
-# finally convert the scanned page into a DIN-A4 PDF.
+# Script for scanning pages from a scanner via SANE, convert the TIFF into a 
+# PNG, reduce the file size and optionally convert the scanned page into a 
+# DIN-A4 PDF.
 # Size reduction and format conversion is done via ImageMagick.
 #
 # Preconditions (on Debian like systems):
@@ -13,7 +14,8 @@
 # 2) ImageMagick is installed:
 #    $> sudo apt-get install imagemagick
 #
-# 3) "PDF Split and Merge" (pdfsam) is installed:
+# 3) optionally "PDF Split and Merge" (pdfsam) is installed, in case to merge
+#    several PDF pages to one PDF:
 #    $> sudo apt-get install pdfsam
 #
 # Hints:
@@ -29,9 +31,14 @@
 #
 #   example:
 #   $> scanimage --help --device-name 'hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
+#
+# 3) settings for file size reduction and quality optimizatuib are inspired by 
+#    https://wiki.ubuntuusers.de/ImageMagick/
+#    paragraph "Gescannte Dokumente nachbessern"
+#
 # -----------------------------------------------------------------------------
 # file name ..... scan_and_optimize.sh
-# last change ... 2018-02-19
+# last change ... 2018-11-02
 #
 # The MIT License (MIT)
 #
@@ -61,32 +68,30 @@
 SCRIPTNAME=`basename $0`
 
 # Version of current script as date string, formatted as 'YYYY-MM-DD hh:mm'
-SCRIPT_VERSION='2018-10-30 07:45'
+SCRIPT_VERSION='2018-11-02 10:00'
 
 # current device
 DEVICE='hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC'
 #DEVICE='hpaio:/net/Officejet_Pro_8600?zc=HP843497A42027'
+#DEVICE=''
 DEVICENAME='Hewlett-Packard Officejet_Pro_8600 all-in-one'
 
 # ---------------------------
 USAGE=`cat <<-__USAGE__
 Usage: ${SCRIPTNAME} OPTIONS
 
-Script for scanning pages from a scanner via SANE, reduce the file size and
-finally convert the scanned page into a DIN-A4 PDF.
+Script for scanning pages from a scanner via SANE, convert the TIFF into a PNG,
+reduce the file size and optionally convert the scanned page into a DIN-A4 PDF.
 Size reduction and format conversion is done via ImageMagick.
 
 Parameters are separated by a blank (e.g. -m Gray or --mode Gray).
 -w, --wdir WORKING_DIRECTORY  existing working directory for storing all files
 -n, --name FILE_NAME  file name without file extension for scan output
--m, --mode COLORMODE  available scan modes, depending from scan device
-                      currently available: 'Gray' or 'Color'
--o, --original TYPE   original to scan consists mainly of type 'text' or 
-                      'graphics'
+-p, --pdf             OPTIONAL: creates pdf file,
+                      if option is not given, only png file gets created
 -r, --resolution RESOLUTION  available scan resolutions, depending from 
                       scan device,  currently available: 75 100 200 300
                       recommended is 200
--c, --count OPTCOUNT  repeated runs of file size reduction, recommended is 7
 -d, --device          currently used scan device
 -h, --help            optional, display this help message and exit
 -v, --version         optional, print version information
@@ -121,10 +126,8 @@ __USAGE__`
 # initialize variables
 FILENAME=''
 WORKING_DIRECTORY=''
-COLORMODE=''
+PDF_OUTPUT=''
 RESOLUTION=''
-OPTCOUNT=''
-TYPE=''
 
 
 # ---------------------------
@@ -141,10 +144,9 @@ while true; do
 			FILENAME="$1"
 			shift
 			;;
-		--mode|-m)
+		--pdf|-p)
 			shift
-			COLORMODE="$1"
-			shift
+			PDF_OUTPUT="TRUE"
 			;;
 		--resolution|-r)
 			shift
@@ -154,11 +156,6 @@ while true; do
 		--original|-o)
 			shift
 			TYPE="$1"
-			shift
-			;;
-		--count|-c)
-			shift
-			OPTCOUNT="$1"
 			shift
 			;;
 		--device|-d)
@@ -189,7 +186,7 @@ done
 
 # ---------------------------
 # check if necessary parameters are not empty
-if [[ "$WORKING_DIRECTORY" == "" ]] || [[ "$FILENAME" == "" ]] || [[ "$COLORMODE" == "" ]] || [[ "$TYPE" == "" ]] || [[ "$RESOLUTION" == "" ]] || [[ "$OPTCOUNT" == "" ]] ; then
+if [[ "$WORKING_DIRECTORY" == "" ]] || [[ "$FILENAME" == "" ]] || [[ "$RESOLUTION" == "" ]] ; then
 	echo "ERROR: one of the necessary command line parameters is not set properly!"
 	echo "please refer to command line usage"
 	exit 4
@@ -198,7 +195,7 @@ fi
 
 # ---------------------------
 # scan to tiff
-scanimage --device-name ${DEVICE} --mode ${COLORMODE} --resolution ${RESOLUTION} --format tiff > ${WORKING_DIRECTORY}/${FILENAME}.tiff
+scanimage --device-name ${DEVICE} --mode Color --source Flatbed --resolution ${RESOLUTION} --format tiff > ${WORKING_DIRECTORY}/${FILENAME}.tiff
 RETURN_CODE=$?
 if [[ ${RETURN_CODE} -ne 0 ]] ; then
 	exit ${RETURN_CODE}
@@ -212,6 +209,7 @@ RETURN_CODE=$?
 if [[ ${RETURN_CODE} -ne 0 ]] ; then
 	exit ${RETURN_CODE}
 fi
+rm ${WORKING_DIRECTORY}/${FILENAME}.tiff
 
 
 # ---------------------------
@@ -224,9 +222,12 @@ fi
 
 
 # ---------------------------
-# convert png to pdf
-convert ${WORKING_DIRECTORY}/${FILENAME}.png ${WORKING_DIRECTORY}/${FILENAME}.pdf
-RETURN_CODE=$?
-if [[ ${RETURN_CODE} -ne 0 ]] ; then
-	exit ${RETURN_CODE}
+# optional: convert png to pdf
+if [[ "$PDF_OUTPUT" == "TRUE" ]] ; then
+	convert ${WORKING_DIRECTORY}/${FILENAME}.png ${WORKING_DIRECTORY}/${FILENAME}.pdf
+	RETURN_CODE=$?
+	if [[ ${RETURN_CODE} -ne 0 ]] ; then
+		exit ${RETURN_CODE}
+	fi
+	rm ${WORKING_DIRECTORY}/${FILENAME}.png
 fi
