@@ -12,12 +12,12 @@
 # http://www.inf-schule.de/software/gui/entwicklung_tkinter/layout/grid
 # https://forums.fedoraforum.org/showthread.php?297279-Python3-Tkinter-icon-What-gives!
 # -----------------------------------------------------------------------------
-# file name ..... scan_and_optimize.sh
-# last change ... 2018-02-19
+# file name ..... scanopt_gui.py
+# last change ... 2019-03-16
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2018 Marcus Trommen (mailto:marcus.trommen@gmx.net)
+# Copyright (c) 2019 Marcus Trommen (mailto:marcus.trommen@gmx.net)
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -44,29 +44,31 @@
 # -----------------------------------------------------------------------------
 # Version of current script as date string, formatted as 'YYYY-MM-DD hh:mm'
 # -----------------------------------------------------------------------------
-SCRIPT_VERSION='2018-11-02 08:00'
+SCRIPT_VERSION='2019-03-16'
 AUTHOR = "Marcus Trommen (mailto:marcus.trommen@gmx.net)"
 
 
 # -----------------------------------------------------------------------------
 # available OPTIONS and DEFAULTS of local scanner / adjust these if necessary
 # -----------------------------------------------------------------------------
+# current device
+DEVICE="hpaio:/usb/Officejet_Pro_8600?serial=CN2C1CXJGN05KC"
+
 RESOLUTION_OPTIONS = ('75', '100', '200', '300')
 RESOLUTION_DEFAULT = '200'
-FILE_FORMAT_OPTIONS = {'png' : 'PNG (Portable Network Graphics)', 'pdf' : 'PDF (Portable Document Format)'}
-FILE_FORMAT_DEFAULT_KEY = 'png'
 SCAN_FILENAME_DEFAULT = "scan"
 
-SHELLSCRIPT = '/opt/scanopt/scan_and_optimize.sh'
+SHELLSCRIPT = '/usr/bin/scanimage'
 PROGRAM_ICON = 'scanopt_gui.gif'
 SETTINGS_FILE_NAME = '.scan_and_optimize'
+
+GREY_THRESHOLD = 200
 
 # -----------------------------------------------------------------------------
 # static label definitions (for translating UI change here)
 # -----------------------------------------------------------------------------
 APPLICATION_NAME = 'Scan optimieren'
 LABEL_RESOLUTION = 'Scan-Auflösung [dpi]:'
-LABEL_FILE_FORMAT = 'Dateiformat:'
 LABEL_WORKDIR = 'Arbeitsverzeichnis:'
 LABEL_FILENAME = "Dateiname des Scan: "
 LABEL_INFO = 'Info'
@@ -77,7 +79,6 @@ LABEL_CLOSE = 'Schließen'
 # static label definitions (for settings file) - do not change
 # -----------------------------------------------------------------------------
 SETTING_RESOLUTION = 'resolution'
-SETTING_FILE_FORMAT = 'fileformat'
 SETTING_SCANWORKDIR = 'scanworkdir'
 SETTING_SCANFILENAME = 'scanfilename'
 
@@ -92,6 +93,8 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.ttk
 
+from PIL import Image
+from fpdf import FPDF
 
 # -----------------------------------------------------------------------------
 # Application class definition
@@ -118,9 +121,6 @@ class Application(tkinter.Frame):
 		self.resolution = tkinter.StringVar()
 		self.resolution.set(RESOLUTION_DEFAULT)
 		
-		self.fileformat = tkinter.StringVar()
-		self.fileformat.set(FILE_FORMAT_DEFAULT_KEY)
-		
 		self.workdir = tkinter.StringVar()
 		self.workdir.set(os.getenv('HOME'))
 		
@@ -146,8 +146,6 @@ class Application(tkinter.Frame):
 				
 				if key == SETTING_RESOLUTION:
 					self.resolution.set(value)
-				elif key == SETTING_FILE_FORMAT:
-					self.fileformat.set(value)
 				elif key == SETTING_SCANWORKDIR:
 					self.workdir.set(value)
 				elif key == SETTING_SCANFILENAME:
@@ -166,7 +164,6 @@ class Application(tkinter.Frame):
 		else:
 			fileHandle.write('# last change: ' + datetime.datetime.now().isoformat() + '\n')
 			fileHandle.write(SETTING_RESOLUTION + "=" + self.resolution.get() + '\n')
-			fileHandle.write(SETTING_FILE_FORMAT + "=" + self.fileformat.get() + '\n')
 			fileHandle.write(SETTING_SCANWORKDIR + "=" + self.workdir.get() + '\n')
 			fileHandle.write(SETTING_SCANFILENAME + "=" + self.filename.get() + '\n')
 		finally:
@@ -197,26 +194,6 @@ class Application(tkinter.Frame):
 		resBox['values'] = RESOLUTION_OPTIONS
 		resBox.grid(row=rowIndex, column=1, sticky='nw', padx=5, pady=(15,5), columnspan=4)
 		self.widgetList.append(resBox)
-		rowIndex += 1
-		
-		# File Format
-		lFileformat = tkinter.Label(self)
-		lFileformat['text'] = LABEL_FILE_FORMAT
-		lFileformat['justify'] = tkinter.LEFT
-		lFileformat.grid(row=rowIndex, column=0, sticky='ewn', padx=5, pady=8)
-		self.widgetList.append(lFileformat)
-		
-		frameFileformat = tkinter.Frame(self)
-		optionRow = 0
-		for fileformatKey in FILE_FORMAT_OPTIONS.keys() :
-			radio = tkinter.Radiobutton(frameFileformat)
-			radio["text"] = FILE_FORMAT_OPTIONS[fileformatKey]
-			radio["value"] = fileformatKey
-			radio["variable"] = self.fileformat
-			radio.grid(row=optionRow, column=0, sticky='w', padx=0, pady=0)
-			self.widgetList.append(radio)
-			optionRow += 1
-		frameFileformat.grid(row=rowIndex, column=1, sticky='ewns', padx=5, pady=8, columnspan=4)
 		rowIndex += 1
 		
 		# Working Directory
@@ -305,7 +282,6 @@ class Application(tkinter.Frame):
 		data = {}
 		data['wdir'] = self.workdir.get()
 		data['name'] = self.filename.get()
-		data['fileformat'] = self.fileformat.get()
 		data['resolution'] = self.resolution.get()
 
 		self._toggleState('disabled')
@@ -347,9 +323,17 @@ class Busy(tkinter.Toplevel):
 		hourglass.grid(row=1, column=0, padx=20, pady=(5, 20))
 		
 		self._adjustGeometry()
-		self._doScan()
-		#import time
-		#time.sleep(5)
+		
+		errorCode = self._doScan()
+		
+		if errorCode == 0:
+			errorCode = self._manipulateTiff()
+		
+		if errorCode == 0:
+			errorCode = self._renderPdf()
+		
+		if errorCode == 0:
+			tkinter.messagebox.showinfo("Info", "Scan war erfolgreich!", parent=self)
 
 
 	def _adjustGeometry(self):
@@ -367,34 +351,87 @@ class Busy(tkinter.Toplevel):
 
 
 	def _doScan(self):
+		#scanimage --device-name ${DEVICE} --mode Color --source Flatbed --resolution ${RESOLUTION} --format tiff > ${WORKING_DIRECTORY}/${FILENAME}.tiff
 		command = []
 		command.append(SHELLSCRIPT)
-		command.append('--wdir')
-		command.append(self.data['wdir'])
-		command.append('--name')
-		command.append(self.data['name'])
-		command.append('--resolution')
+		# General options
+		command.append("--device-name")
+		command.append(DEVICE)
+		command.append("--format=tiff")
+		# Scan mode
+		command.append("--mode=Color")
+		command.append("--source=Flatbed")
+		command.append("--resolution")
 		command.append(self.data['resolution'])
-		if self.data['fileformat'] == 'pdf' :
-			command.append('--pdf')
-		
+		# Advanced
+		command.append("--brightness=1000")
+		command.append("--contrast=1000")
+		command.append("--compression=None")
+	
 		process = subprocess.Popen(
 			command,
-			shell=False, 
+			shell=False,
 			stdout=subprocess.PIPE,
-			stderr=subprocess.STDOUT)
-			
-		stdoutBuffer = ''
-		for line in process.stdout:
-			stdoutBuffer += line.decode('utf-8')
-		
+			stderr=None)
+	
+		stdoutBuffer, stderrBuffer = process.communicate()
+	
 		errorCode = process.wait()
-		
+	
 		if errorCode == 0:
-			tkinter.messagebox.showinfo("Info", "Scan war erfolgreich!", parent=self)
+			tempfile = os.path.join(self.data['wdir'], "tempScan.tiff")
+			with open(tempfile, "w+b") as fileobject:
+				fileobject.write(stdoutBuffer);
+			stdoutBuffer = None
 		else:
 			tkinter.messagebox.showerror("FEHLER", stdoutBuffer, parent=self)	
+		return(errorCode)
 
+
+	def _manipulateTiff(self):
+		tempfile = os.path.join(self.data['wdir'], "tempScan.tiff")
+		
+		image = Image.open(tempfile)
+	
+		(width, height) = image.size
+		#image = image.point(lambda i: 0 if i<26 else 102 if i<128 else 153 if i<179 else 255)
+	
+		pixel_array = image.load()
+		(width, height) = image.size
+		for x in range(width):
+			for y in range(height):
+				(red, green, blue) = pixel_array[x, y]
+				red = 0 if red<26 else 102 if red<128 else 255
+				green = 0 if green<26 else 102 if green<128 else 255
+				blue = 0 if blue<26 else 102 if blue<128 else 255
+			
+				# check if grey value
+				if (red == green and red == blue) :
+					if (red < GREY_THRESHOLD) :
+						image.putpixel((x, y), (0,0,0))
+					else:
+						image.putpixel((x, y), (255,255,255))
+				else:
+					image.putpixel((x, y), (red, green, blue))
+		
+		#image = image.convert(mode = "P", palette=Image.WEB)
+		#image = image.transpose(Image.ROTATE_180)
+		#image = image.quantize(colors=256, method=1)
+		outfile = os.path.join(self.data['wdir'], self.data['name'] + ".png")
+		image.save(outfile, "PNG", optimize = True)
+		#image.show()
+		return(0)
+
+
+	def _renderPdf(self):
+		pdf = FPDF(orientation = 'P', format = 'A4', unit = 'mm')
+		pdf.add_page()
+		pdf.set_margins(left = 0, top = 0, right = 0)
+		pdf.set_auto_page_break(auto = False, margin = 0.0)
+		filename = os.path.join(self.data['wdir'], self.data['name'])
+		pdf.image(filename + ".png", w=210)
+		pdf.output(filename + ".pdf")
+		return(0)
 
 # -----------------------------------------------------------------------------
 # main program
